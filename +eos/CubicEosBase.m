@@ -30,8 +30,8 @@ classdef CubicEosBase
                 OmegaA (1,1) {mustBeNumeric}
                 OmegaB (1,1) {mustBeNumeric}
                 Pc (:,1) {mustBeNumeric}
-                Tc (:,1) {mustBeNumeric}
-                Mw (:,1) {mustBeNumeric}
+                Tc (:,1) {mustBeNumeric,eos.mustBeEqualSize(Pc,Tc)}
+                Mw (:,1) {mustBeNumeric,eos.mustBeEqualSize(Pc,Mw)}
                 K (:,:) {mustBeNumeric}
             end
             obj.OmegaA = OmegaA;
@@ -59,8 +59,8 @@ classdef CubicEosBase
             arguments
                 obj {mustBeA(obj,'eos.CubicEosBase')}
                 Pc (:,1) {mustBeNumeric}
-                Tc (:,1) {mustBeNumeric}
-                Mw (:,1) {mustBeNumeric}
+                Tc (:,1) {mustBeNumeric,eos.mustBeEqualSize(Pc,Tc)}
+                Mw (:,1) {mustBeNumeric,eos.mustBeEqualSize(Pc,Mw)}
                 K (:,:) {mustBeNumeric}
             end
             obj.CriticalPressure = Pc;
@@ -117,9 +117,9 @@ classdef CubicEosBase
             % A : Reduced attraction parameter
             arguments
                 obj {mustBeA(obj,'eos.CubicEosBase')}
-                Pr {mustBeNumeric} 
-                Tr {mustBeNumeric} 
-                alpha {mustBeNumeric} 
+                Pr (:,1) {mustBeNumeric} 
+                Tr (:,1) {mustBeNumeric,eos.mustBeEqualSize(Pr,Tr)} 
+                alpha (:,1) {mustBeNumeric,eos.mustBeEqualSize(Pr,alpha)} 
             end
             A = obj.OmegaA*alpha.*Pr./Tr.^2;
         end
@@ -136,8 +136,8 @@ classdef CubicEosBase
             % B : Reduced repulsion parameter
             arguments
                 obj {mustBeA(obj,'eos.CubicEosBase')}
-                Pr {mustBeNumeric} 
-                Tr {mustBeNumeric} 
+                Pr (:,1) {mustBeNumeric} 
+                Tr (:,1) {mustBeNumeric,eos.mustBeEqualSize(Pr,Tr)} 
             end
             B = obj.OmegaB*Pr./Tr;
         end
@@ -158,7 +158,7 @@ classdef CubicEosBase
             arguments
                 obj {mustBeA(obj,'eos.CubicEosBase')}
                 T (1,1) {mustBeNumeric}
-                V (1,1) {mustBeNumeric}
+                V (:,1) {mustBeNumeric}
                 x (:,1) {mustBeNumeric} = 1
             end
             Tr = obj.reducedTemperature(T);
