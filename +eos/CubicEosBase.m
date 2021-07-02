@@ -61,7 +61,7 @@ classdef CubicEosBase
                 Pc (:,1) {mustBeNumeric}
                 Tc (:,1) {mustBeNumeric}
                 Mw (:,1) {mustBeNumeric}
-                K (:,:) {mustBeNumeric} = 1
+                K (:,:) {mustBeNumeric}
             end
             obj.CriticalPressure = Pc;
             obj.CriticalTemperature = Tc;
@@ -163,10 +163,12 @@ classdef CubicEosBase
             end
             Tr = obj.reducedTemperature(T);
             alpha = obj.temperatureCorrectionFactor(Tr);
-            if nargin ~= 3
-                a = alpha.*obj.AttractionParam;
+            if nargin == 3
+                % Pure component
+                a = alpha*obj.AttractionParam;
                 b = obj.RepulsionParam;
             else
+                % Multi-components
                 ai = alpha.*obj.AttractionParam;
                 bi = obj.RepulsionParam;
                 [a,b] = obj.applyMixingRule(x,ai,bi);
