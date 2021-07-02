@@ -192,8 +192,10 @@ classdef CubicEosBase
                 s struct
             end
             if isfield(s,'x')
+                % Multi-component
                 lnPhi = obj.lnFugacityCoeffImpl(z,s.A,s.B,s.x,s.Aij,s.Bi);
             else
+                % Pure component
                 lnPhi = obj.lnFugacityCoeffImpl(z,s.A,s.B);
             end
         end
@@ -238,9 +240,11 @@ classdef CubicEosBase
             Tr = obj.reducedTemperature(T);
             alpha = obj.temperatureCorrectionFactor(Tr);
             if nargin == 3
+                % Pure component
                 A = obj.reducedAttractionParam(Pr,Tr,alpha);
                 B = obj.reducedRepulsionParam(Pr,Tr);
             else
+                % Multi-components
                 Ai = obj.reducedAttractionParam(Pr,Tr,alpha);
                 Bi = obj.reducedRepulsionParam(Pr,Tr);
                 [A,B,Aij] = obj.applyMixingRule(x,Ai,Bi);
