@@ -116,6 +116,7 @@ classdef SoaveRedlichKwongEos < eos.CubicEosBase
                 K = zeros(length(Pc));
             end
             obj@eos.CubicEosBase(0.42748,0.08664,Pc,Tc,Mw,K)
+            obj@eos.CubicEosBase(0.42747,0.08664,Pc,Tc,Mw,K)
             obj.AcentricFactor = omega;
         end
         function obj = setParams(obj,Pc,Tc,omega,Mw,K)
