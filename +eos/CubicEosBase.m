@@ -11,9 +11,6 @@ classdef CubicEosBase
         RepulsionParam      % Repulsion parameter
         BinaryInteractionParams % Binary interaction parameters
     end
-    properties (Dependent)
-        NumComponents % Number of components
-    end
     methods
         function obj = CubicEosBase(OmegaA,OmegaB,Pc,Tc,Mw,K)
             % Construct cubic EOS
@@ -43,9 +40,6 @@ classdef CubicEosBase
             R = eos.ThermodynamicConstants.Gas;
             obj.AttractionParam = OmegaA*(R*Tc).^2./Pc;
             obj.RepulsionParam = OmegaB*R*Tc./Pc;
-        end
-        function ncomp = get.NumComponents(obj)
-            ncomp = len(obj.CriticalPressure);
         end
         function obj = setParams(obj,Pc,Tc,Mw,K)
             % Set parameters
