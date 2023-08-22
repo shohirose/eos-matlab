@@ -107,7 +107,7 @@ classdef VanDerWaalsEos < eos.CubicEosBase
                K (:,:) {mustBeNumeric} = 1
             end
             if nargin == 3
-                K = zeros(length(Pc));
+                K = eye(length(Pc));
             end
             obj@eos.CubicEosBase(0.421875,0.125,Pc,Tc,Mw,K);
         end
@@ -134,15 +134,15 @@ classdef VanDerWaalsEos < eos.CubicEosBase
                 K (:,:) {mustBeNumeric} = 1
             end
             if nargin == 4
-                K = zeros(length(Pc));
+                K = eye(length(Pc));
             end
             obj = setParams@eos.CubicEosBase(obj,Pc,Tc,Mw,K);
         end
-        function alpha = temperatureCorrectionFactor(~,~)
+        function alpha = temperatureCorrectionFactor(obj,Tr)
             % Compute temperature correction factor
             %
-            %   This function just returns 1 because VDW EoS assumes
-            %   constant attraction parameter over temperature.
+            %   This function just returns a unit vector because VDW EoS
+            %   assumes constant attraction parameter over temperature.
             %
             % alpha = obj.TEMPERATURECORRECTIONFACTOR(Tr)
             %
@@ -153,7 +153,7 @@ classdef VanDerWaalsEos < eos.CubicEosBase
             % Returns
             % -------
             % alpha : Temperature correction factor
-            alpha = 1;
+            alpha = ones(length(Tr), 1);
         end
     end
 end
