@@ -22,21 +22,33 @@ classdef CubicEosBase
             % Pc : Critical pressure [Pa]
             % Tc : Critical temperature [K]
             % Mw : Molecular weight [g/mol]
-            % K  : Binary interaction parameter
+            % K  : Binary interaction parameter (Only for multi-component
+            % systems)
             arguments
                 OmegaA (1,1) {mustBeNumeric}
                 OmegaB (1,1) {mustBeNumeric}
                 Pc (:,1) {mustBeNumeric}
                 Tc (:,1) {mustBeNumeric,eos.mustBeEqualSize(Pc,Tc)}
                 Mw (:,1) {mustBeNumeric,eos.mustBeEqualSize(Pc,Mw)}
-                K (:,:) {mustBeNumeric}
+                K (:,:) {mustBeNumeric} = 1
             end
             obj.OmegaA = OmegaA;
             obj.OmegaB = OmegaB;
             obj.CriticalPressure = Pc;
             obj.CriticalTemperature = Tc;
             obj.MolecularWeight = Mw;
-            obj.BinaryInteractionParams = K;
+            ncomp = length(Pc);
+            if ncomp > 1
+                if nargin == 6
+                    if ismatrix(K) && size(K,1) == size(K,2) ...
+                            && size(K,1) == ncomp
+                        obj.BinaryInteractionParams = K;
+                    end
+                else
+                    warning('Binary interaction parameter is not set. Unit matrix is used.')
+                    obj.BinaryInteractionParams = eye(ncomp);
+                end
+            end
             R = eos.ThermodynamicConstants.Gas;
             obj.AttractionParam = OmegaA*(R*Tc).^2./Pc;
             obj.RepulsionParam = OmegaB*R*Tc./Pc;
@@ -49,18 +61,30 @@ classdef CubicEosBase
             % Pc : Critical pressure [Pa]
             % Tc : Critical temperature [K]
             % Mw : Molecular weight [g/mol]
-            % K  : Binary interaction parameters
+            % K  : Binary interaction parameters (Only for multi-component
+            % systems)
             arguments
                 obj {mustBeA(obj,'eos.CubicEosBase')}
                 Pc (:,1) {mustBeNumeric}
                 Tc (:,1) {mustBeNumeric,eos.mustBeEqualSize(Pc,Tc)}
                 Mw (:,1) {mustBeNumeric,eos.mustBeEqualSize(Pc,Mw)}
-                K (:,:) {mustBeNumeric}
+                K (:, :) {mustBeNumeric} = 1
             end
             obj.CriticalPressure = Pc;
             obj.CriticalTemperature = Tc;
             obj.MolecularWeight = Mw;
-            obj.BinaryInteractionParams = K;
+            ncomp = length(Pc);
+            if ncomp > 1
+                if nargin == 5
+                    if ismatrix(K) && size(K,1) == size(K,2) ...
+                            && size(K,1) == ncomp
+                        obj.BinaryInteractionParams = K;
+                    end
+                else
+                    warning('Binary interaction parameter is not set. Unit matrix is used.')
+                    obj.BinaryInteractionParams = eye(ncomp);
+                end
+            end
             R = eos.ThermodynamicConstants.Gas;
             obj.AttractionParam = obj.OmegaA*(R*Tc).^2./Pc;
             obj.RepulsionParam = obj.OmegaB*R*Tc./Pc;
@@ -144,7 +168,7 @@ classdef CubicEosBase
             % ----------
             % T : Temperature [K]
             % V : Volume [m3]
-            % x : Composition
+            % x : Composition (Only for multi-component systems)
             %
             % Returns
             % -------
@@ -169,61 +193,68 @@ classdef CubicEosBase
             end
             P = obj.pressureImpl(T,V,a,b);
         end
-        function lnPhi = lnFugacityCoeff(obj,z,s)
+        function lnPhi = lnFugacityCoeff(obj,params)
             % Compute fugacity coefficients
             %
             % Parameters
             % ----------
-            % z : Z-factors
-            % s : struct containing parameters
+            % params: struct returned by zFactors function
             %
             % Returns
             % -------
             % lnPhi : Fugacity coefficients
             arguments
                 obj {mustBeA(obj,'eos.CubicEosBase')}
-                z (:,1) {mustBeNumeric}
-                s struct
+                params struct
             end
-            if isfield(s,'x')
+            if isfield(params,'x')
                 % Multi-component
-                lnPhi = obj.lnFugacityCoeffImpl(z,s.A,s.B,s.x,s.Aij,s.Bi);
+                lnPhi = obj.lnFugacityCoeffImpl(params.z,params.A, ...
+                    params.B,params.x,params.Aij,params.Bi);
             else
                 % Pure component
-                lnPhi = obj.lnFugacityCoeffImpl(z,s.A,s.B);
+                lnPhi = obj.lnFugacityCoeffImpl(params.z,params.A, ...
+                    params.B);
             end
         end
-        function phi = fugacityCoeff(obj,z,s)
+        function phi = fugacityCoeff(obj,params)
             % Compute fugacity coefficients
             %
             % Parameters
             % ----------
-            % z : Z-factors
-            % s : struct containing parameters
+            % params: struct returned by zFactors function
             %
             % Returns
             % -------
             % phi : Fugacity coefficients
             arguments
                 obj {mustBeA(obj,'eos.CubicEosBase')}
-                z (:,1) {mustBeNumeric}
-                s struct
+                params struct
             end
-            phi = exp(obj.lnFugacityCoeff(z,s));
+            phi = exp(obj.lnFugacityCoeff(params));
         end
-        function [z,s] = zFactors(obj,P,T,x)
+        function result = zFactors(obj,P,T,x)
             % Compute Z-factors
             %
             % Parameters
             % ----------
             % P : Pressure [Pa]
             % T : Temperature [K]
-            % x : Composition
+            % x : Composition (Only for multi-component systems)
             %
             % Returns
             % -------
-            % z : Z-factors
-            % s : struct containing parameters
+            % result : struct
+            %     P   : Pressure
+            %     T   : Temperature
+            %     x   : Composition
+            %     z   : Z-factor
+            %     A   : Mixed attraction parameter
+            %     B   : Mixed repulsion parameter
+            %     Ai  : i-th component attraction parameter
+            %     Bi  : i-th component repulsion parameter
+            %     Aij : Combined attraction parameter between i and j
+            %     components
             arguments
                 obj {mustBeA(obj,'eos.CubicEosBase')}
                 P (1,1) {mustBeNumeric}
@@ -244,18 +275,16 @@ classdef CubicEosBase
                 [A,B,Aij] = obj.applyMixingRule(x,Ai,Bi);
             end
             y = roots(obj.zFactorCubicEq(A,B));
-            z = y(imag(y) == 0);
-            if nargout > 1
-                s.P = P;
-                s.T = T;
-                s.A = A;
-                s.B = B;
-                if nargin > 3
-                    s.x = x;
-                    s.Ai = Ai;
-                    s.Bi = Bi;
-                    s.Aij = Aij;
-                end
+            result.z = sort(y(imag(y) == 0));
+            result.P = P;
+            result.T = T;
+            result.A = A;
+            result.B = B;
+            if nargin > 3
+                result.x = x;
+                result.Ai = Ai;
+                result.Bi = Bi;
+                result.Aij = Aij;
             end
         end
         function [a,b,aij] = applyMixingRule(obj,x,ai,bi)
