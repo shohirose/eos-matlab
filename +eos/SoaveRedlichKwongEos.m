@@ -115,7 +115,6 @@ classdef SoaveRedlichKwongEos < eos.CubicEosBase
             if nargin == 4
                 K = zeros(length(Pc));
             end
-            obj@eos.CubicEosBase(0.42748,0.08664,Pc,Tc,Mw,K)
             obj@eos.CubicEosBase(0.42747,0.08664,Pc,Tc,Mw,K)
             obj.AcentricFactor = omega;
         end
@@ -166,6 +165,7 @@ classdef SoaveRedlichKwongEos < eos.CubicEosBase
                 Tr (:,1) {mustBeNumeric}
             end
             omega = obj.AcentricFactor;
+            % Soave (1972)
             m = 0.48 + 1.574*omega - 0.176*omega.^2;
             alpha = (1 + m.*(1 - sqrt(Tr))).^2;
         end
