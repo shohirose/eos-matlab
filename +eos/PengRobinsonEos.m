@@ -175,7 +175,7 @@ classdef PengRobinsonEos < eos.CubicEosBase
                 Tr (:,1) {mustBeNumeric}
             end
             omega = obj.AcentricFactor;
-            m = 0.3796 + 1.485*omega - 0.1644*omega.^2 + 0.01667*omega.^3;
+            m = 0.37464 + 1.54226*omega - 0.26992*omega.^2;
             alpha = (1 + m.*(1 - sqrt(Tr))).^2;
         end
     end
