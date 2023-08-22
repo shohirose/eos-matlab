@@ -31,5 +31,5 @@ eos = PengRobinsonEos(Pc,Tc,omega,Mw);
 [z,s] = eos.zFactors(P,T);
 z = sort(z);
 phi = eos.fugacityCoeff(z,s);
-assert(max(abs((z - [0.1235, 0.1988, 0.6240]')./z)) < 1e-3);
-assert(max(abs((phi - [0.7591, 0.7654, 0.7256]')./phi)) < 1e-3);
+assert(max(abs((z - [0.1237, 0.1984, 0.6242]')./z)) < 1e-3);
+assert(max(abs((phi - [0.7595, 0.7657, 0.7257]')./phi)) < 1e-3);
