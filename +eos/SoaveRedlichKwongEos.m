@@ -151,6 +151,17 @@ classdef SoaveRedlichKwongEos < eos.CubicEosBase
             end
             obj.AcentricFactor = omega;
         end
+        function m = calcm(obj)
+            % Calc m using the correlation of Soave(1972).
+            %
+            % m = obj.CALCM();
+            %
+            % Returns
+            % -------
+            % m : Parameter m
+            omega = obj.AcentricFactor;
+            m = 0.48 + 1.574*omega - 0.176*omega.^2;
+        end
         function alpha = temperatureCorrectionFactor(obj,Tr)
             % Compute temperature correction factor.
             %
@@ -167,9 +178,7 @@ classdef SoaveRedlichKwongEos < eos.CubicEosBase
                 obj {mustBeA(obj, 'eos.SoaveRedlichKwongEos')}
                 Tr (:,1) {mustBeNumeric}
             end
-            omega = obj.AcentricFactor;
-            % Soave (1972)
-            m = 0.48 + 1.574*omega - 0.176*omega.^2;
+            m = obj.calcm();
             alpha = (1 + m.*(1 - sqrt(Tr))).^2;
         end
     end

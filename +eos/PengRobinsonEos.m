@@ -161,6 +161,22 @@ classdef PengRobinsonEos < eos.CubicEosBase
             end
             obj.AcentricFactor = omega;
         end
+
+        function m = calcm(obj)
+            % Compute parameter m.
+            %
+            % m = obj.CALCM()
+            %
+            % Returns
+            % ----------
+            % m : Parameter m
+            arguments
+                obj {mustBeA(obj,'eos.PengRobinsonEos')}
+            end
+            omega = obj.AcentricFactor;
+            m = 0.37464 + 1.54226*omega - 0.26992*omega.^2;
+        end
+        
         function alpha = temperatureCorrectionFactor(obj,Tr)
             % Compute temperature correction factor.
             %
@@ -177,8 +193,7 @@ classdef PengRobinsonEos < eos.CubicEosBase
                 obj {mustBeA(obj,'eos.PengRobinsonEos')}
                 Tr (:,1) {mustBeNumeric}
             end
-            omega = obj.AcentricFactor;
-            m = 0.37464 + 1.54226*omega - 0.26992*omega.^2;
+            m = obj.calcm();
             alpha = (1 + m.*(1 - sqrt(Tr))).^2;
         end
     end
