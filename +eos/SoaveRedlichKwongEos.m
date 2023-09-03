@@ -112,10 +112,12 @@ classdef SoaveRedlichKwongEos < eos.CubicEosBase
                 Mw (:,1) {mustBeNumeric}
                 K (:,:) {mustBeNumeric} = 1
             end
-            if nargin == 4
-                K = zeros(length(Pc));
+            if nargin > 4
+                args = {0.42747,0.08664,Pc,Tc,Mw,K};
+            else
+                args = {0.42747,0.08664,Pc,Tc,Mw};
             end
-            obj@eos.CubicEosBase(0.42747,0.08664,Pc,Tc,Mw,K)
+            obj@eos.CubicEosBase(args{:});
             obj.AcentricFactor = omega;
         end
         function obj = setParams(obj,Pc,Tc,omega,Mw,K)
@@ -136,16 +138,17 @@ classdef SoaveRedlichKwongEos < eos.CubicEosBase
             % obj : SOAVEREDLICHKWONGEOS
             arguments
                 obj {mustBeA(obj,'eos.SoaveRedlichKwongEos')}
-                Pc (1,1) {mustBeNumeric}
-                Tc (1,1) {mustBeNumeric}
-                omega (1,1) {mustBeNumeric}
-                Mw (1,1) {mustBeNumeric}
+                Pc (:,1) {mustBeNumeric}
+                Tc (:,1) {mustBeNumeric}
+                omega (:,1) {mustBeNumeric}
+                Mw (:,1) {mustBeNumeric}
                 K (:,:) {mustBeNumeric} = 1
             end
-            if nargin == 4
-                K = zeros(length(Pc));
+            if nargin > 5
+                obj = setParams@eos.CubicEosBase(obj,Pc,Tc,Mw,K);
+            else
+                obj = setParams@eos.CubicEosBase(obj,Pc,Tc,Mw);
             end
-            obj = setParams@eos.CubicEosBase(obj,Pc,Tc,Mw,K);
             obj.AcentricFactor = omega;
         end
         function alpha = temperatureCorrectionFactor(obj,Tr)

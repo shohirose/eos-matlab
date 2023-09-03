@@ -106,10 +106,12 @@ classdef VanDerWaalsEos < eos.CubicEosBase
                Mw (:,1) {mustBeNumeric}
                K (:,:) {mustBeNumeric} = 1
             end
-            if nargin == 3
-                K = eye(length(Pc));
+            if nargin > 3
+                args = {0.421875,0.125,Pc,Tc,Mw,K};
+            else
+                args = {0.421875,0.125,Pc,Tc,Mw};
             end
-            obj@eos.CubicEosBase(0.421875,0.125,Pc,Tc,Mw,K);
+            obj@eos.CubicEosBase(args{:});
         end
         function obj = setParams(obj,Pc,Tc,Mw,K)
             % Set parameters
@@ -133,10 +135,11 @@ classdef VanDerWaalsEos < eos.CubicEosBase
                 Mw (:,1) {mustBeNumeric}
                 K (:,:) {mustBeNumeric} = 1
             end
-            if nargin == 4
-                K = eye(length(Pc));
+            if nargin > 4
+                obj = setParams@eos.CubicEosBase(obj,Pc,Tc,Mw,K);
+            else
+                obj = setParams@eos.CubicEosBase(obj,Pc,Tc,Mw);
             end
-            obj = setParams@eos.CubicEosBase(obj,Pc,Tc,Mw,K);
         end
         function alpha = temperatureCorrectionFactor(obj,Tr)
             % Compute temperature correction factor
@@ -153,6 +156,10 @@ classdef VanDerWaalsEos < eos.CubicEosBase
             % Returns
             % -------
             % alpha : Temperature correction factor
+            arguments
+                obj {mustBeA(obj,'eos.VanDerWaalsEos')}
+                Tr (:,1) {mustBeNumeric} = 1
+            end
             alpha = ones(length(Tr), 1);
         end
     end

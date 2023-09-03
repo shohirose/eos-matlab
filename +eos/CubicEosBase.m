@@ -28,8 +28,8 @@ classdef CubicEosBase
                 OmegaA (1,1) {mustBeNumeric}
                 OmegaB (1,1) {mustBeNumeric}
                 Pc (:,1) {mustBeNumeric}
-                Tc (:,1) {mustBeNumeric,eos.mustBeEqualSize(Pc,Tc)}
-                Mw (:,1) {mustBeNumeric,eos.mustBeEqualSize(Pc,Mw)}
+                Tc (:,1) {mustBeNumeric}
+                Mw (:,1) {mustBeNumeric}
                 K (:,:) {mustBeNumeric} = 1
             end
             obj.OmegaA = OmegaA;
@@ -40,10 +40,7 @@ classdef CubicEosBase
             ncomp = length(Pc);
             if ncomp > 1
                 if nargin == 6
-                    if ismatrix(K) && size(K,1) == size(K,2) ...
-                            && size(K,1) == ncomp
-                        obj.BinaryInteractionParams = K;
-                    end
+                    obj.BinaryInteractionParams = K;
                 else
                     warning('Binary interaction parameter is not set. Unit matrix is used.')
                     obj.BinaryInteractionParams = eye(ncomp);
@@ -66,9 +63,9 @@ classdef CubicEosBase
             arguments
                 obj {mustBeA(obj,'eos.CubicEosBase')}
                 Pc (:,1) {mustBeNumeric}
-                Tc (:,1) {mustBeNumeric,eos.mustBeEqualSize(Pc,Tc)}
-                Mw (:,1) {mustBeNumeric,eos.mustBeEqualSize(Pc,Mw)}
-                K (:, :) {mustBeNumeric} = 1
+                Tc (:,1) {mustBeNumeric}
+                Mw (:,1) {mustBeNumeric}
+                K (:,:) {mustBeNumeric} = 1
             end
             obj.CriticalPressure = Pc;
             obj.CriticalTemperature = Tc;
@@ -76,10 +73,7 @@ classdef CubicEosBase
             ncomp = length(Pc);
             if ncomp > 1
                 if nargin == 5
-                    if ismatrix(K) && size(K,1) == size(K,2) ...
-                            && size(K,1) == ncomp
-                        obj.BinaryInteractionParams = K;
-                    end
+                    obj.BinaryInteractionParams = K;
                 else
                     warning('Binary interaction parameter is not set. Unit matrix is used.')
                     obj.BinaryInteractionParams = eye(ncomp);
@@ -136,8 +130,8 @@ classdef CubicEosBase
             arguments
                 obj {mustBeA(obj,'eos.CubicEosBase')}
                 Pr (:,1) {mustBeNumeric} 
-                Tr (:,1) {mustBeNumeric,eos.mustBeEqualSize(Pr,Tr)} 
-                alpha (:,1) {mustBeNumeric,eos.mustBeEqualSize(Pr,alpha)} 
+                Tr (:,1) {mustBeNumeric} 
+                alpha (:,1) {mustBeNumeric} 
             end
             A = obj.OmegaA*alpha.*Pr./Tr.^2;
         end
@@ -155,7 +149,7 @@ classdef CubicEosBase
             arguments
                 obj {mustBeA(obj,'eos.CubicEosBase')}
                 Pr (:,1) {mustBeNumeric} 
-                Tr (:,1) {mustBeNumeric,eos.mustBeEqualSize(Pr,Tr)} 
+                Tr (:,1) {mustBeNumeric} 
             end
             B = obj.OmegaB*Pr./Tr;
         end

@@ -110,7 +110,7 @@ classdef PengRobinsonEos < eos.CubicEosBase
             % Tc : Critical temperature [K]
             % omega : Acentric factor
             % Mw : Molecular weight [g/mol]
-            % K : Binary interaction parameters
+            % K : Binary interaction parameters (optional)
             %
             % Returns
             % -------
@@ -122,10 +122,12 @@ classdef PengRobinsonEos < eos.CubicEosBase
                 Mw (:,1) {mustBeNumeric}
                 K (:,:) {mustBeNumeric} = 1
             end
-            if nargin == 4
-                K = zeros(length(Pc));
+            if nargin > 4
+                args = {0.45724,0.07780,Pc,Tc,Mw,K};
+            else
+                args = {0.45724,0.07780,Pc,Tc,Mw};
             end
-            obj@eos.CubicEosBase(0.45724,0.07780,Pc,Tc,Mw,K);
+            obj@eos.CubicEosBase(args{:});
             obj.AcentricFactor = omega;
         end
         function obj = setParams(obj,Pc,Tc,omega,Mw,K)
@@ -152,10 +154,11 @@ classdef PengRobinsonEos < eos.CubicEosBase
                 Mw (:,1) {mustBeNumeric}
                 K (:,:) {mustBeNumeric} = 1
             end
-            if nargin == 5
-                K = zeros(length(Pc));
+            if nargin > 5
+                obj = setParams@eos.CubicEosBase(obj,Pc,Tc,Mw,K);
+            else
+                obj = setParams@eos.CubicEosBase(obj,Pc,Tc,Mw);
             end
-            obj = setParams@eos.CubicEosBase(obj,Pc,Tc,Mw,K);
             obj.AcentricFactor = omega;
         end
         function alpha = temperatureCorrectionFactor(obj,Tr)
