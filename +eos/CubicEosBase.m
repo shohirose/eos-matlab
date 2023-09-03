@@ -9,7 +9,7 @@ classdef CubicEosBase
         OmegaB              % Coefficient for repulsion parameter
         AttractionParam     % Attraction parameter
         RepulsionParam      % Repulsion parameter
-        BinaryInteractionParams % Binary interaction parameters
+        MixingRule          % Mixing rule
     end
     methods
         function obj = CubicEosBase(OmegaA,OmegaB,Pc,Tc,Mw,K)
@@ -22,8 +22,7 @@ classdef CubicEosBase
             % Pc : Critical pressure [Pa]
             % Tc : Critical temperature [K]
             % Mw : Molecular weight [g/mol]
-            % K  : Binary interaction parameter (Only for multi-component
-            % systems)
+            % K  : Binary interaction parameter (optional)
             arguments
                 OmegaA (1,1) {mustBeNumeric}
                 OmegaB (1,1) {mustBeNumeric}
@@ -37,14 +36,8 @@ classdef CubicEosBase
             obj.CriticalPressure = Pc;
             obj.CriticalTemperature = Tc;
             obj.MolecularWeight = Mw;
-            ncomp = length(Pc);
-            if ncomp > 1
-                if nargin == 6
-                    obj.BinaryInteractionParams = K;
-                else
-                    warning('Binary interaction parameter is not set. Unit matrix is used.')
-                    obj.BinaryInteractionParams = eye(ncomp);
-                end
+            if nargin == 6
+                obj.MixingRule = eos.MixingRule(K);
             end
             R = eos.ThermodynamicConstants.Gas;
             obj.AttractionParam = OmegaA*(R*Tc).^2./Pc;
@@ -70,14 +63,8 @@ classdef CubicEosBase
             obj.CriticalPressure = Pc;
             obj.CriticalTemperature = Tc;
             obj.MolecularWeight = Mw;
-            ncomp = length(Pc);
-            if ncomp > 1
-                if nargin == 5
-                    obj.BinaryInteractionParams = K;
-                else
-                    warning('Binary interaction parameter is not set. Unit matrix is used.')
-                    obj.BinaryInteractionParams = eye(ncomp);
-                end
+            if nargin == 5
+                obj.MixingRule = eos.MixingRule(K);
             end
             R = eos.ThermodynamicConstants.Gas;
             obj.AttractionParam = obj.OmegaA*(R*Tc).^2./Pc;
@@ -174,7 +161,11 @@ classdef CubicEosBase
                 x (:,1) {mustBeNumeric} = 1
             end
             Tr = obj.reducedTemperature(T);
-            alpha = obj.temperatureCorrectionFactor(Tr);
+            if isa(obj,'eos.VanDerWaalsEos')
+                alpha = 1.0;
+            else
+                alpha = obj.temperatureCorrectionFactor(Tr);
+            end
             if nargin == 3
                 % Pure component
                 a = alpha*obj.AttractionParam;
@@ -183,7 +174,7 @@ classdef CubicEosBase
                 % Multi-components
                 ai = alpha.*obj.AttractionParam;
                 bi = obj.RepulsionParam;
-                [a,b] = obj.applyMixingRule(x,ai,bi);
+                [a,b] = obj.MixingRule.apply(x,ai,bi);
             end
             P = obj.pressureImpl(T,V,a,b);
         end
@@ -270,7 +261,7 @@ classdef CubicEosBase
                 % Multi-components
                 Ai = obj.reducedAttractionParam(Pr,Tr,alpha);
                 Bi = obj.reducedRepulsionParam(Pr,Tr);
-                [A,B,Aij] = obj.applyMixingRule(x,Ai,Bi);
+                [A,B,Aij] = obj.MixingRule.apply(x,Ai,Bi);
             end
             y = roots(obj.zFactorCubicEq(A,B));
             result.z = sort(y(imag(y) == 0));
@@ -284,31 +275,6 @@ classdef CubicEosBase
                 result.Bi = Bi;
                 result.Aij = Aij;
             end
-        end
-        function [a,b,aij] = applyMixingRule(obj,x,ai,bi)
-            % Apply mixing rule to attraction and repulsion parameters.
-            %
-            % [a,b,aij] = obj.APPLYMIXINGRULE(x,ai,bi)
-            %
-            % Parameters
-            % ----------
-            % x  : Composition
-            % ai : Attraction parameter of each component
-            % bi : Repulsion parameter of each component
-            %
-            % Returns
-            % -------
-            % a   : Attraction parameter of the mixture
-            % b   : Repulsion parameter of the mixture
-            % aij : Combined attraction parameter between i and j
-            % components
-            K = obj.BinaryInteractionParams;
-            % Combining rule with correction parameters
-            aij = (1 - K).*sqrt(kron(ai,ai'));
-            % Quadratic mixing
-            a = x'*aij*x;
-            % Linear mixing
-            b = x'*bi;
         end
     end
 end
