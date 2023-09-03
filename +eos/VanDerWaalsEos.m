@@ -141,26 +141,5 @@ classdef VanDerWaalsEos < eos.CubicEosBase
                 obj = setParams@eos.CubicEosBase(obj,Pc,Tc,Mw);
             end
         end
-        function alpha = temperatureCorrectionFactor(obj,Tr)
-            % Compute temperature correction factor
-            %
-            %   This function just returns a unit vector because VDW EoS
-            %   assumes constant attraction parameter over temperature.
-            %
-            % alpha = obj.TEMPERATURECORRECTIONFACTOR(Tr)
-            %
-            % Parameters
-            % ----------
-            % Tr : Reduced temperature
-            %
-            % Returns
-            % -------
-            % alpha : Temperature correction factor
-            arguments
-                obj {mustBeA(obj,'eos.VanDerWaalsEos')}
-                Tr (:,1) {mustBeNumeric} = 1
-            end
-            alpha = ones(length(Tr), 1);
-        end
     end
 end

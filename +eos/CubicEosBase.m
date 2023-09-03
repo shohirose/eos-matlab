@@ -257,7 +257,11 @@ classdef CubicEosBase
             end
             Pr = obj.reducedPressure(P);
             Tr = obj.reducedTemperature(T);
-            alpha = obj.temperatureCorrectionFactor(Tr);
+            if isa(obj, 'eos.VanDerWaalsEos')
+                alpha = 1.0;
+            else
+                alpha = obj.temperatureCorrectionFactor(Tr);
+            end
             if nargin == 3
                 % Pure component
                 A = obj.reducedAttractionParam(Pr,Tr,alpha);
