@@ -178,47 +178,55 @@ classdef CubicEosBase
             end
             P = obj.pressureImpl(T,V,a,b);
         end
-        function lnPhi = lnFugacityCoeff(obj,params)
+        function lnPhi = lnFugacityCoeff(obj,z,params)
             % Compute fugacity coefficients
             %
             % Parameters
             % ----------
-            % params: struct returned by zFactors function
+            % z      : Z-factor
+            % params : struct returned by zFactors function
             %
             % Returns
             % -------
             % lnPhi : Fugacity coefficients
             arguments
                 obj {mustBeA(obj,'eos.CubicEosBase')}
+                z (:,1) {mustBeNumeric}
                 params struct
             end
             if isfield(params,'x')
                 % Multi-component
-                lnPhi = obj.lnFugacityCoeffImpl(params.z,params.A, ...
-                    params.B,params.Aij*params.x,params.Bi);
+                A = params.A;
+                B = params.B;
+                Ai = params.Aij*params.x;
+                Bi = params.Bi;
+                lnPhi = obj.lnFugacityCoeffImpl(z,A,B,Ai,Bi);
             else
                 % Pure component
-                lnPhi = obj.lnFugacityCoeffImpl(params.z,params.A, ...
-                    params.B);
+                A = params.A;
+                B = params.B;
+                lnPhi = obj.lnFugacityCoeffImpl(z,A,B);
             end
         end
-        function phi = fugacityCoeff(obj,params)
+        function phi = fugacityCoeff(obj,z,params)
             % Compute fugacity coefficients
             %
             % Parameters
             % ----------
-            % params: struct returned by zFactors function
+            % z      : Z-factors
+            % params : struct returned by zFactors function
             %
             % Returns
             % -------
             % phi : Fugacity coefficients
             arguments
                 obj {mustBeA(obj,'eos.CubicEosBase')}
+                z (:,1) {mustBeNumeric}
                 params struct
             end
-            phi = exp(obj.lnFugacityCoeff(params));
+            phi = exp(obj.lnFugacityCoeff(z,params));
         end
-        function result = zFactors(obj,P,T,x)
+        function [z,params] = zFactors(obj,P,T,x)
             % Compute Z-factors
             %
             % Parameters
@@ -229,11 +237,11 @@ classdef CubicEosBase
             %
             % Returns
             % -------
-            % result : struct
+            % z      : Z-factors
+            % params : struct
             %     P   : Pressure
             %     T   : Temperature
             %     x   : Composition
-            %     z   : Z-factor
             %     A   : Mixed attraction parameter
             %     B   : Mixed repulsion parameter
             %     Ai  : i-th component attraction parameter
@@ -264,16 +272,16 @@ classdef CubicEosBase
                 [A,B,Aij] = obj.MixingRule.apply(x,Ai,Bi);
             end
             y = roots(obj.zFactorCubicEq(A,B));
-            result.z = sort(y(imag(y) == 0));
-            result.P = P;
-            result.T = T;
-            result.A = A;
-            result.B = B;
+            z = sort(y(imag(y) == 0));
+            params.P = P;
+            params.T = T;
+            params.A = A;
+            params.B = B;
             if nargin > 3
-                result.x = x;
-                result.Ai = Ai;
-                result.Bi = Bi;
-                result.Aij = Aij;
+                params.x = x;
+                params.Ai = Ai;
+                params.Bi = Bi;
+                params.Aij = Aij;
             end
         end
     end

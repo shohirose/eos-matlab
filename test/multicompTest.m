@@ -16,24 +16,21 @@ x = [0.85, 0.15]';          % Overall composition
 
 %% Test 1: VanDerWaalsEos
 eos = VanDerWaalsEos(Pc,Tc,Mw,K);
-result = eos.zFactors(P,T,x);
-phi = eos.fugacityCoeff(result);
-z = result.z;
+[z,result] = eos.zFactors(P,T,x);
+phi = eos.fugacityCoeff(z,result);
 assert(max(abs((z - 0.158531)./z)) < 1e-3);
 assert(max(abs((phi - [0.870881, 0.048737]')./phi)) < 1e-3);
 
 %% Test 2: SoaveRedlichKwongEos
 eos = SoaveRedlichKwongEos(Pc,Tc,omega,Mw,K);
-result = eos.zFactors(P,T,x);
-phi = eos.fugacityCoeff(result);
-z = result.z;
+[z,result] = eos.zFactors(P,T,x);
+phi = eos.fugacityCoeff(z,result);
 assert(max(abs((z - 0.109951)./z)) < 1e-3);
 assert(max(abs((phi - [0.835510, 0.003603]')./phi)) < 1e-3);
 
 %% Test 3: PengRobinsonEos
 eos = PengRobinsonEos(Pc,Tc,omega,Mw,K);
-result = eos.zFactors(P,T,x);
-phi = eos.fugacityCoeff(result);
-z = result.z;
+[z,result] = eos.zFactors(P,T,x);
+phi = eos.fugacityCoeff(z,result);
 assert(max(abs((z - 0.097245)./z)) < 1e-3);
 assert(max(abs((phi - [0.810069, 0.003697]')./phi)) < 1e-3);

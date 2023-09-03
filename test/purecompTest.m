@@ -13,24 +13,21 @@ T = 180;        % Temperature [K]
 
 %% VanDerWaalsEos test:
 eos = VanDerWaalsEos(Pc,Tc,Mw);
-result = eos.zFactors(P,T);
-phi = eos.fugacityCoeff(result);
-z = result.z;
+[z,result] = eos.zFactors(P,T);
+phi = eos.fugacityCoeff(z,result);
 assert(abs((z - 0.6999)/z) < 1e-3);
 assert(abs((phi - 0.7769)/phi) < 1e-3);
 
 %% SoaveRedlichKwongEos test:
 eos = SoaveRedlichKwongEos(Pc,Tc,omega,Mw);
-result = eos.zFactors(P,T);
-z = result.z;
-phi = eos.fugacityCoeff(result);
+[z,result] = eos.zFactors(P,T);
+phi = eos.fugacityCoeff(z,result);
 assert(max(abs((z - [0.1393, 0.2132, 0.6475]')./z)) < 1e-3);
 assert(max(abs((phi - [0.7808, 0.7863, 0.7441]')./phi)) < 1e-3);
 
 %% PengRobinsonEos test:
 eos = PengRobinsonEos(Pc,Tc,omega,Mw);
-result = eos.zFactors(P,T);
-z = result.z;
-phi = eos.fugacityCoeff(result);
+[z,result] = eos.zFactors(P,T);
+phi = eos.fugacityCoeff(z,result);
 assert(max(abs((z - [0.1237, 0.1984, 0.6242]')./z)) < 1e-3);
 assert(max(abs((phi - [0.7595, 0.7657, 0.7257]')./phi)) < 1e-3);
