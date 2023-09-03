@@ -21,7 +21,7 @@ classdef VanDerWaalsEos < eos.CubicEosBase
             end
             coeffs = [1, -B - 1, A, -A*B];
         end
-        function lnPhi = lnFugacityCoeffImpl(z,A,B,x,Aij,Bi)
+        function lnPhi = lnFugacityCoeffImpl(z,A,B,Ai,Bi)
             % Compute the natural log of fugacity coeffcients
             %
             % lnPhi = LNGUGACITYCOEFF(z,s)
@@ -31,8 +31,7 @@ classdef VanDerWaalsEos < eos.CubicEosBase
             % z : Z-factors
             % A : Attraction parameter
             % B : Repulsion parameter
-            % x : Composition
-            % Aij : Attraction parameter between i and j components
+            % Ai : = Aij*xj
             % Bi : Repulsion parameter for i component
             %
             % Returns
@@ -42,18 +41,15 @@ classdef VanDerWaalsEos < eos.CubicEosBase
                 z (:,1) {mustBeNumeric}
                 A (1,1) {mustBeNumeric}
                 B (1,1) {mustBeNumeric}
-                x (:,1) {mustBeNumeric} = 1
-                Aij (:,:) {mustBeNumeric} = 1
+                Ai (:,:) {mustBeNumeric} = 1
                 Bi (:,1) {mustBeNumeric} = 1
             end
             if nargin > 3
                 % Multi-component systems
-                Ai = Aij*x;
-                lnPhi = zeros(length(x),length(z));
-                for i = 1:length(z)
-                    lnPhi(:,i) = Bi/B*(z(i) - 1) - log(z(i) - B) ...
-                        - A/z(i)*(2*Ai/A - Bi/B);
-                end
+                Ak = repmat(Ai/A,1,length(z));
+                Bk = repmat(Bi/B,1,length(z));
+                zk = repmat(z',length(Ai),1);
+                lnPhi = Bk.*(zk - 1) - log(zk - B) - A./zk.*(2*Ak - Bk);
             else
                 % Pure component systems
                 lnPhi = z - 1 - log(z - B) - A./z;

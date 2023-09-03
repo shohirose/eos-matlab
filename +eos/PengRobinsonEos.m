@@ -32,7 +32,7 @@ classdef PengRobinsonEos < eos.CubicEosBase
             end
             coeffs = [1, B - 1, A - 2*B - 3*B^2, -A*B + B^2 + B^3];
         end
-        function lnPhi = lnFugacityCoeffImpl(z,A,B,x,Aij,Bi)
+        function lnPhi = lnFugacityCoeffImpl(z,A,B,Ai,Bi)
             % Compute the natural log of fugacity coefficients.
             %
             % lnPhi = LNFUGACITYCOEFFIMPL(z,s)
@@ -42,8 +42,7 @@ classdef PengRobinsonEos < eos.CubicEosBase
             % z : Z-factor
             % A : Attraction parameter
             % B : Repulsion parameter
-            % x : Composition
-            % Aij : Attraction parameter between i and j components
+            % Ai : Ai = Aij*xj
             % Bi : Repulstion parameter of i component
             %
             % Returns
@@ -53,24 +52,21 @@ classdef PengRobinsonEos < eos.CubicEosBase
                 z (:,1) {mustBeNumeric}
                 A (1,1) {mustBeNumeric}
                 B (1,1) {mustBeNumeric}
-                x (:,1) {mustBeNumeric} = 1
-                Aij (:,:) {mustBeNumeric} = 1
+                Ai (:,1) {mustBeNumeric} = 1
                 Bi (:,1) {mustBeNumeric} = 1
             end
             Sqrt2 = eos.PengRobinsonEos.Sqrt2;
             Delta1 = eos.PengRobinsonEos.Delta1;
             Delta2 = eos.PengRobinsonEos.Delta2;
+            Q = A/(2*Sqrt2*B)*log((z + Delta1*B)./(z + Delta2*B));
             if nargin > 3
-                Ai = Aij*x;
-                lnPhi = zeros(length(x),length(z));
-                for i = 1:length(z)
-                    lnPhi(:,i) = Bi/B*(z(i) - 1) - log(z(i) - B) ...
-                        - A/(2*Sqrt2*B)*log((z(i) + Delta1*B)/(z(i) + Delta2*B)) ...
-                        *(2*Ai/A - Bi/B);
-                end
+                Ak = repmat(Ai/A,1,length(z));
+                Bk = repmat(Bi/B,1,length(z));
+                Qk = repmat(Q',length(Ai),1);
+                zk = repmat(z',length(Ai),1);
+                lnPhi = Bk.*(zk - 1) - log(zk - B) - Qk.*(2*Ak - Bk);
             else
-                lnPhi = z - 1 - log(z - B) ...
-                    - A/(2*Sqrt2*B)*log((z + Delta1*B)./(z + Delta2*B));
+                lnPhi = z - 1 - log(z - B) - Q;
             end
         end
         function P = pressureImpl(T,V,a,b)

@@ -195,7 +195,7 @@ classdef CubicEosBase
             if isfield(params,'x')
                 % Multi-component
                 lnPhi = obj.lnFugacityCoeffImpl(params.z,params.A, ...
-                    params.B,params.x,params.Aij,params.Bi);
+                    params.B,params.Aij*params.x,params.Bi);
             else
                 % Pure component
                 lnPhi = obj.lnFugacityCoeffImpl(params.z,params.A, ...

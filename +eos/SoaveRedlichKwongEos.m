@@ -27,7 +27,7 @@ classdef SoaveRedlichKwongEos < eos.CubicEosBase
             end
             coeffs = [1, -1, A - B - B^2, -A*B];
         end
-        function lnPhi = lnFugacityCoeffImpl(z,A,B,x,Aij,Bi)
+        function lnPhi = lnFugacityCoeffImpl(z,A,B,Ai,Bi)
             % Compute natural log of fugacity coefficients
             %
             % lnPhi = LNFUGACITYCOEFFIMPL(z,A,B,x,Aij,Bi)
@@ -38,7 +38,7 @@ classdef SoaveRedlichKwongEos < eos.CubicEosBase
             % A : Attraction parameter
             % B : Repulsion parameter
             % x : Composition
-            % Aij : Attraction parameter between i and j components
+            % Ai : = Aij*xj
             % Bi : Repulstion parameter of i component
             %
             % Returns
@@ -48,19 +48,18 @@ classdef SoaveRedlichKwongEos < eos.CubicEosBase
                 z (:,1) {mustBeNumeric}
                 A (1,1) {mustBeNumeric}
                 B (1,1) {mustBeNumeric}
-                x (:,1) {mustBeNumeric} = 1
-                Aij (:,:) {mustBeNumeric} = 1
+                Ai (:,:) {mustBeNumeric} = 1
                 Bi (:,1) {mustBeNumeric} = 1
             end
+            Q = A/B*log(B./z + 1);
             if nargin > 3
-                Ai = Aij*x;
-                lnPhi = zeros(length(x),length(z));
-                for i = 1:length(z)
-                    lnPhi(:,i) = Bi/B*(z(i) - 1) - log(z(i) - B) ...
-                        - A/B*log(B/z(i) + 1)*(2*Ai/A - Bi/B);
-                end
+                Ak = repmat(Ai/A,1,length(z));
+                Bk = repmat(Bi/B,1,length(z));
+                Qk = repmat(Q',length(Ai),1);
+                zk = repmat(z',length(Ai),1);
+                lnPhi = Bk.*(zk - 1) - log(zk - B) - Qk.*(2*Ak - Bk);
             else
-                lnPhi = z - 1 - log(z - B) - A/B*log(B./z + 1);
+                lnPhi = z - 1 - log(z - B) - Q;
             end
         end
         function P = pressureImpl(T,V,a,b)
