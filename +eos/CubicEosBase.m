@@ -86,6 +86,23 @@ classdef CubicEosBase
             obj.AttractionParam = obj.OmegaA*(R*Tc).^2./Pc;
             obj.RepulsionParam = obj.OmegaB*R*Tc./Pc;
         end
+
+        function Pc = get.CriticalPressure(obj)
+            Pc = obj.CriticalPressure;
+        end
+
+        function Tc = get.CriticalTemperature(obj)
+            Tc = obj.CriticalTemperature;
+        end
+
+        function omega = get.AcentricFactor(obj)
+            omega = obj.AcentricFactor;
+        end
+
+        function Mw = get.MolecularWeight(obj)
+            Mw = obj.MolecularWeight;
+        end
+        
         function Pr = reducedPressure(obj,P)
             % Compute reduced pressure
             %
