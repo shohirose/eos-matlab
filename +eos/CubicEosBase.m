@@ -5,30 +5,38 @@ classdef CubicEosBase
         CriticalPressure    % Critical pressure [Pa]
         CriticalTemperature % Critical temperature [K]
         MolecularWeight     % Molecular weight [g/mol]
+        AcentricFactor      % Acentric factor
+        CorrectionFactor    % Correction factor for the attraction
+                            % parameter
         OmegaA              % Coefficient for attraction parameter
         OmegaB              % Coefficient for repulsion parameter
         AttractionParam     % Attraction parameter
         RepulsionParam      % Repulsion parameter
         MixingRule          % Mixing rule
     end
+
     methods
-        function obj = CubicEosBase(OmegaA,OmegaB,Pc,Tc,Mw,K)
+        function obj = CubicEosBase(OmegaA,OmegaB,Pc,Tc,Mw,omega,alpha,K)
             % Construct cubic EOS
             %
             % Parameters
             % ----------
             % OmegaA : Coefficient for attraction parameter
             % OmegaB : Coefficient for repulsion parameter
-            % Pc : Critical pressure [Pa]
-            % Tc : Critical temperature [K]
-            % Mw : Molecular weight [g/mol]
-            % K  : Binary interaction parameter (optional)
+            % Pc     : Critical pressure [Pa]
+            % Tc     : Critical temperature [K]
+            % Mw     : Molecular weight [g/mol]
+            % omega  : Acentric factor
+            % alpha  : Correction factor
+            % K      : Binary interaction parameter (optional)
             arguments
                 OmegaA (1,1) {mustBeNumeric}
                 OmegaB (1,1) {mustBeNumeric}
                 Pc (:,1) {mustBeNumeric}
                 Tc (:,1) {mustBeNumeric}
                 Mw (:,1) {mustBeNumeric}
+                omega (:,1) {mustBeNumeric}
+                alpha {eos.mustBeCorrectionFactor}
                 K (:,:) {mustBeNumeric} = 1
             end
             obj.OmegaA = OmegaA;
@@ -36,34 +44,42 @@ classdef CubicEosBase
             obj.CriticalPressure = Pc;
             obj.CriticalTemperature = Tc;
             obj.MolecularWeight = Mw;
-            if nargin == 6
+            obj.AcentricFactor = omega;
+            obj.CorrectionFactor = alpha;
+            if nargin == 8
                 obj.MixingRule = eos.MixingRule(K);
             end
             R = eos.ThermodynamicConstants.Gas;
             obj.AttractionParam = OmegaA*(R*Tc).^2./Pc;
             obj.RepulsionParam = OmegaB*R*Tc./Pc;
         end
-        function obj = setParams(obj,Pc,Tc,Mw,K)
+        function obj = setParams(obj,Pc,Tc,Mw,omega,alpha,K)
             % Set parameters
             %
             % Parameters
             % ----------
-            % Pc : Critical pressure [Pa]
-            % Tc : Critical temperature [K]
-            % Mw : Molecular weight [g/mol]
-            % K  : Binary interaction parameters (Only for multi-component
-            % systems)
+            % Pc    : Critical pressure [Pa]
+            % Tc    : Critical temperature [K]
+            % Mw    : Molecular weight [g/mol]
+            % omega : Acentric factor
+            % alpha : Correction factor
+            % K     : Binary interaction parameters (Only for
+            %         multi-component systems)
             arguments
                 obj {mustBeA(obj,'eos.CubicEosBase')}
                 Pc (:,1) {mustBeNumeric}
                 Tc (:,1) {mustBeNumeric}
                 Mw (:,1) {mustBeNumeric}
+                omega (:,1) {mustBeNumeric}
+                alpha {eos.mustBeCorrectionFactor}
                 K (:,:) {mustBeNumeric} = 1
             end
             obj.CriticalPressure = Pc;
             obj.CriticalTemperature = Tc;
             obj.MolecularWeight = Mw;
-            if nargin == 5
+            obj.AcentricFactor = omega;
+            obj.CorrectionFactor = alpha;
+            if nargin == 7
                 obj.MixingRule = eos.MixingRule(K);
             end
             R = eos.ThermodynamicConstants.Gas;
@@ -102,14 +118,13 @@ classdef CubicEosBase
             end
             Tr = T./obj.CriticalTemperature;
         end
-        function A = reducedAttractionParam(obj,Pr,Tr,alpha)
+        function A = reducedAttractionParam(obj,Pr,Tr)
             % Compute reduced attraction parameter
             %
             % Parameters
             % ----------
             % Pr : Reduced pressure
             % Tr : Reduced temperature
-            % alpha : Temperature correction factor
             %
             % Returns
             % -------
@@ -118,8 +133,8 @@ classdef CubicEosBase
                 obj {mustBeA(obj,'eos.CubicEosBase')}
                 Pr (:,1) {mustBeNumeric} 
                 Tr (:,1) {mustBeNumeric} 
-                alpha (:,1) {mustBeNumeric} 
             end
+            alpha = obj.CorrectionFactor.calcAlpha(Tr);
             A = obj.OmegaA*alpha.*Pr./Tr.^2;
         end
         function B = reducedRepulsionParam(obj,Pr,Tr)
@@ -161,11 +176,7 @@ classdef CubicEosBase
                 x (:,1) {mustBeNumeric} = 1
             end
             Tr = obj.reducedTemperature(T);
-            if isa(obj,'eos.VanDerWaalsEos')
-                alpha = 1.0;
-            else
-                alpha = obj.temperatureCorrectionFactor(Tr);
-            end
+            alpha = obj.CorrectionFactor.calcAlpha(Tr);
             if nargin == 3
                 % Pure component
                 a = alpha*obj.AttractionParam;
@@ -256,18 +267,13 @@ classdef CubicEosBase
             end
             Pr = obj.reducedPressure(P);
             Tr = obj.reducedTemperature(T);
-            if isa(obj, 'eos.VanDerWaalsEos')
-                alpha = 1.0;
-            else
-                alpha = obj.temperatureCorrectionFactor(Tr);
-            end
             if nargin == 3
                 % Pure component
-                A = obj.reducedAttractionParam(Pr,Tr,alpha);
+                A = obj.reducedAttractionParam(Pr,Tr);
                 B = obj.reducedRepulsionParam(Pr,Tr);
             else
                 % Multi-components
-                Ai = obj.reducedAttractionParam(Pr,Tr,alpha);
+                Ai = obj.reducedAttractionParam(Pr,Tr);
                 Bi = obj.reducedRepulsionParam(Pr,Tr);
                 [A,B,Aij] = obj.MixingRule.apply(x,Ai,Bi);
             end

@@ -4,9 +4,6 @@ classdef SoaveRedlichKwongEos < eos.CubicEosBase
     %  This class provides methods to calculate thermodynamic properties
     %  based on Soave-Redlich-Kwong equation of state.
     
-    properties (SetAccess = private)
-        AcentricFactor % Acentric factor
-    end
     methods (Static)
         function coeffs = zFactorCubicEq(A,B)
             % Compute coefficients of Z-factor cubic equation
@@ -86,6 +83,11 @@ classdef SoaveRedlichKwongEos < eos.CubicEosBase
             R = eos.ThermodynamicConstants.Gas;
             P = R*T./(V - b) - a./(V.*(V + b));
         end
+
+        function m = calcM(omega)
+            % Calc m using the correlation of Soave(1972).
+            m = 0.48 + 1.574*omega - 0.176*omega.^2;
+        end
     end
     methods
         function obj = SoaveRedlichKwongEos(Pc,Tc,omega,Mw,K)
@@ -111,13 +113,14 @@ classdef SoaveRedlichKwongEos < eos.CubicEosBase
                 Mw (:,1) {mustBeNumeric}
                 K (:,:) {mustBeNumeric} = 1
             end
+            m = eos.SoaveRedlichKwongEos.calcM(omega);
+            alpha = eos.SoaveCorrectionFactor(m);
             if nargin > 4
-                args = {0.42747,0.08664,Pc,Tc,Mw,K};
+                args = {0.42747,0.08664,Pc,Tc,Mw,omega,alpha,K};
             else
-                args = {0.42747,0.08664,Pc,Tc,Mw};
+                args = {0.42747,0.08664,Pc,Tc,Mw,omega,alpha};
             end
             obj@eos.CubicEosBase(args{:});
-            obj.AcentricFactor = omega;
         end
         function obj = setParams(obj,Pc,Tc,omega,Mw,K)
             % Set parameters
@@ -143,42 +146,13 @@ classdef SoaveRedlichKwongEos < eos.CubicEosBase
                 Mw (:,1) {mustBeNumeric}
                 K (:,:) {mustBeNumeric} = 1
             end
+            m = eos.SoaveRedlichKwongEos.calcM(omega);
+            alpha = eos.SoaveCorrectionFactor(m);
             if nargin > 5
-                obj = setParams@eos.CubicEosBase(obj,Pc,Tc,Mw,K);
+                obj = setParams@eos.CubicEosBase(obj,Pc,Tc,Mw,omega,alpha,K);
             else
-                obj = setParams@eos.CubicEosBase(obj,Pc,Tc,Mw);
+                obj = setParams@eos.CubicEosBase(obj,Pc,Tc,Mw,omega,alpha);
             end
-            obj.AcentricFactor = omega;
-        end
-        function m = calcm(obj)
-            % Calc m using the correlation of Soave(1972).
-            %
-            % m = obj.CALCM();
-            %
-            % Returns
-            % -------
-            % m : Parameter m
-            omega = obj.AcentricFactor;
-            m = 0.48 + 1.574*omega - 0.176*omega.^2;
-        end
-        function alpha = temperatureCorrectionFactor(obj,Tr)
-            % Compute temperature correction factor.
-            %
-            % alpha = obj.TEMPERATURECORRECTIONFACTOR(Tr)
-            %
-            % Parameters
-            % ----------
-            % Tr : Reduced temperature
-            %
-            % Returns
-            % -------
-            % alpha : Temperature correction factor
-            arguments
-                obj {mustBeA(obj, 'eos.SoaveRedlichKwongEos')}
-                Tr (:,1) {mustBeNumeric}
-            end
-            m = obj.calcm();
-            alpha = (1 + m.*(1 - sqrt(Tr))).^2;
         end
     end
 end

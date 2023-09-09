@@ -9,9 +9,7 @@ classdef PengRobinsonEos < eos.CubicEosBase
         Delta1 = 1 + sqrt(2)
         Delta2 = 1 - sqrt(2)
     end
-    properties (SetAccess = private)
-        AcentricFactor % Acentric factor
-    end
+
     methods (Static)
         function coeffs = zFactorCubicEq(A,B)
             % Compute coefficients of Z-factor cubic equation
@@ -93,6 +91,20 @@ classdef PengRobinsonEos < eos.CubicEosBase
             R = eos.ThermodynamicConstants.Gas;
             P = R*T./(V - b) - a./((V - b).*(V + b) + 2*b*V);
         end
+        
+        function m = calcM(omega)
+            % Compute parameter m.
+            %
+            % m = obj.CALCM()
+            %
+            % Returns
+            % ----------
+            % m : Parameter m
+            arguments
+                omega (:,1) {mustBeNumeric}
+            end
+            m = 0.37464 + 1.54226*omega - 0.26992*omega.^2;
+        end
     end
     methods
         function obj = PengRobinsonEos(Pc,Tc,omega,Mw,K)
@@ -118,13 +130,14 @@ classdef PengRobinsonEos < eos.CubicEosBase
                 Mw (:,1) {mustBeNumeric}
                 K (:,:) {mustBeNumeric} = 1
             end
+            m = eos.PengRobinsonEos.calcM(omega);
+            alpha = eos.SoaveCorrectionFactor(m);
             if nargin > 4
-                args = {0.45724,0.07780,Pc,Tc,Mw,K};
+                args = {0.45724,0.07780,Pc,Tc,Mw,omega,alpha,K};
             else
-                args = {0.45724,0.07780,Pc,Tc,Mw};
+                args = {0.45724,0.07780,Pc,Tc,Mw,omega,alpha};
             end
             obj@eos.CubicEosBase(args{:});
-            obj.AcentricFactor = omega;
         end
         function obj = setParams(obj,Pc,Tc,omega,Mw,K)
             % Set parameters.
@@ -150,47 +163,13 @@ classdef PengRobinsonEos < eos.CubicEosBase
                 Mw (:,1) {mustBeNumeric}
                 K (:,:) {mustBeNumeric} = 1
             end
+            m = eos.PengRobinsonEos.calcM(omega);
+            alpha = eos.SoaveCorrectionFactor(m);
             if nargin > 5
-                obj = setParams@eos.CubicEosBase(obj,Pc,Tc,Mw,K);
+                obj = setParams@eos.CubicEosBase(obj,Pc,Tc,Mw,omega,alpha,K);
             else
-                obj = setParams@eos.CubicEosBase(obj,Pc,Tc,Mw);
+                obj = setParams@eos.CubicEosBase(obj,Pc,Tc,Mw,omega,alpha);
             end
-            obj.AcentricFactor = omega;
-        end
-
-        function m = calcm(obj)
-            % Compute parameter m.
-            %
-            % m = obj.CALCM()
-            %
-            % Returns
-            % ----------
-            % m : Parameter m
-            arguments
-                obj {mustBeA(obj,'eos.PengRobinsonEos')}
-            end
-            omega = obj.AcentricFactor;
-            m = 0.37464 + 1.54226*omega - 0.26992*omega.^2;
-        end
-        
-        function alpha = temperatureCorrectionFactor(obj,Tr)
-            % Compute temperature correction factor.
-            %
-            % alpha = obj.TEMPERATURECORRECTIONFACTOR(Tr)
-            %
-            % Parameters
-            % ----------
-            % Tr : Reduced temperature
-            %
-            % Returns
-            % -------
-            % alpha : Temperature correction factor
-            arguments
-                obj {mustBeA(obj,'eos.PengRobinsonEos')}
-                Tr (:,1) {mustBeNumeric}
-            end
-            m = obj.calcm();
-            alpha = (1 + m.*(1 - sqrt(Tr))).^2;
         end
     end
 end

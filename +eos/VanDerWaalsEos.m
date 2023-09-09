@@ -102,10 +102,12 @@ classdef VanDerWaalsEos < eos.CubicEosBase
                Mw (:,1) {mustBeNumeric}
                K (:,:) {mustBeNumeric} = 1
             end
+            omega = 0;
+            alpha = eos.UnitCorrectionFactor();
             if nargin > 3
-                args = {0.421875,0.125,Pc,Tc,Mw,K};
+                args = {0.421875,0.125,Pc,Tc,Mw,omega,alpha,K};
             else
-                args = {0.421875,0.125,Pc,Tc,Mw};
+                args = {0.421875,0.125,Pc,Tc,Mw,omega,alpha};
             end
             obj@eos.CubicEosBase(args{:});
         end
@@ -131,10 +133,12 @@ classdef VanDerWaalsEos < eos.CubicEosBase
                 Mw (:,1) {mustBeNumeric}
                 K (:,:) {mustBeNumeric} = 1
             end
+            omega = 0;
+            alpha = eos.UnitCorrectionFactor();
             if nargin > 4
-                obj = setParams@eos.CubicEosBase(obj,Pc,Tc,Mw,K);
+                obj = setParams@eos.CubicEosBase(obj,Pc,Tc,Mw,omega,alpha,K);
             else
-                obj = setParams@eos.CubicEosBase(obj,Pc,Tc,Mw);
+                obj = setParams@eos.CubicEosBase(obj,Pc,Tc,Mw,omega,alpha);
             end
         end
     end
