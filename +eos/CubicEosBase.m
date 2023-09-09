@@ -148,7 +148,7 @@ classdef CubicEosBase
             % Parameters
             % ----------
             % T : Temperature [K]
-            % V : Volume [m3]
+            % V : Molar volume [m3/mole]
             % x : Composition (Only for multi-component systems)
             %
             % Returns

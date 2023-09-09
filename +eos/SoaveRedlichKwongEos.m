@@ -70,7 +70,7 @@ classdef SoaveRedlichKwongEos < eos.CubicEosBase
             % Parameters
             % ----------
             % T : Temperature [K]
-            % V : Volume [m3]
+            % V : Molar volume [m3/mole]
             % a : Attraction parameter
             % b : Repulsion parameter
             %
