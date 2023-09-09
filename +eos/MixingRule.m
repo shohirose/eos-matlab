@@ -19,6 +19,18 @@ classdef MixingRule
             end
             obj.BinaryInteractionParams = K;
         end
+
+        function K = get.BinaryInteractionParams(obj)
+            K = obj.BinaryInteractionParams;
+        end
+
+        function obj = set.BinaryInteractionParams(obj,K)
+            arguments
+                obj
+                K (:,:) {mustBeNumeric}
+            end
+            obj.BinaryInteractionParams = K;
+        end
         
         function [A,B,Aij] = apply(obj,x,Ai,Bi)
             %APPLY Apply mixing rule
